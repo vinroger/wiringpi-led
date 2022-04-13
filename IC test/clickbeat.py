@@ -7,7 +7,19 @@ import time
 import threading
 import pygame
 import time
+import RPi.GPIO as GPIO
 #import time
+
+
+#Initialize GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+#one for button switch
+GPIO.setup(4,GPIO.IN)
+#one for button LED
+GPIO.setup(17,GPIO.OUT)
+GPIO.output(17,GPIO.HIGH)
+
 
 pin_base = 65       # lowest available starting number is 65  
 i2c_addr = 0x20     # A0, A1, A2 pins all wired to GND  
@@ -28,20 +40,20 @@ wiringpi.mcp23017Setup(129,i2c5_addr)
 
 
 buttonPinLocation = [
-    [92, 96, 88, 81, 68, 72, 76, -1],
+    [92, 96, 88, 81, 68, 72, 76, 79],
     [91, 95, 85, 82, 67, 71, 75, 80],
     [90, 94, 86, 83, 66, 70, 74, 78],
     [89, 93, 87, 84, 65, 69, 73, 77]
 ]
 
 ledPinLocation = [
-    [116, 120, 121, 105, 99, 104, 109, 128],
-    [115, 119, 124, 127, 100, 103, 108, 112],
+    [116, 119, 121, 105, 99, 104, 109, 124],
+    [115, 120, 128, 127, 100, 103, 108, 112],
     [114, 118, 123, 126, 98, 102, 107, 111],
     [113, 117, 122, 125, 97, 101, 106, 110]
 ]
 
-startButtonPinLocation = 79
+startButtonPinLocation = 200
 wiringpi.pinMode(startButtonPinLocation, 0)
 
 # Declaring button input as an i2C input
@@ -65,7 +77,7 @@ timeoutSec = 300
 # to avoid start button being pressed again and turns everything off,
 # we set a timeout to atleast play some beats loop before the user can turn off the beats by pressing the start button again
 minimumSec = 2
-beatsPause = 200
+beatsPause = 300
 stopButtonPressed = False
 
 # Array for pressed or not pressed buttonsReading
@@ -81,10 +93,12 @@ buttonsReading = [
 def play_beat(row):
     audiofiles[row].play()
     time.sleep(1)
+    return
 
 def play_beat_diff_thread(row):
     t3 = threading.Thread(target=play_beat, args=[row])
     t3.start()
+    return
 
 def play_all_beats():
     for i in range(8):
@@ -92,6 +106,7 @@ def play_all_beats():
             if buttonsReading[j][i]:
                 audiofiles[j].play()
         time.sleep(beatsPause/1000)
+    return
 
 # Check for input and update the buttonsReading array  for BUTTONS
 
@@ -133,6 +148,7 @@ def updateButtonsReading():
             # if same then skip
             else:
                 pass
+    return
 
 
 # update the LED, if pressed then turns on, until it got pressed again ->then will turn off
@@ -140,10 +156,14 @@ def updateLed():
     for i in range(4):
         for j in range(8):
             wiringpi.digitalWrite(ledPinLocation[i][j], buttonsReading[i][j])
-
+    return
 
 def startButtonPressed():
-    return wiringpi.digitalRead(startButtonPinLocation)
+    if(GPIO.input(4)):
+        GPIO.output(17,GPIO.LOW)
+        return True
+    return GPIO.input(4)
+    #return wiringpi.digitalRead(startButtonPinLocation)
 
 
 def turnOffAll():
@@ -157,7 +177,7 @@ def turnOffAll():
     for i in range(4):
         for i in range(8):
             wiringpi.digitalWrite(ledPinLocation[i][j], 0)
-
+    return
 
 
 def execute_beats():
@@ -165,7 +185,7 @@ def execute_beats():
     t.start()
     play_all_beats()
     t.join()
-
+    return
 
 def sweepLED():
     for j in range(8):
@@ -174,7 +194,17 @@ def sweepLED():
         time.sleep(beatsPause/1000)
         for i in range(4):
             wiringpi.digitalWrite(ledPinLocation[i][j], 0)
+    return
 
+def inverseSweepLED():
+    for j in range(8):
+        for i in range(4):
+            wiringpi.digitalWrite(ledPinLocation[i][j], 1)
+        time.sleep(beatsPause/1000)
+        
+        for i in range(4):
+            wiringpi.digitalWrite(ledPinLocation[i][j], buttonsReading[i][j])
+    return
 
 def checkStartButton(starttime):
     global stopButtonPressed
@@ -185,8 +215,10 @@ def checkStartButton(starttime):
             break
         timeNow = datetime.datetime.now()
         if(timeNow-starttime).seconds > minimumSec:
-            stopButtonPressed = wiringpi.digitalRead(startButtonPinLocation)
-
+            stopButtonPressed =GPIO.input(4)
+            if GPIO.input(4) == True:
+                GPIO.output(17,GPIO.HIGH)
+    return
 
 def pauseAll():
     return
