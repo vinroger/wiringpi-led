@@ -39,6 +39,7 @@ wiringpi.mcp23017Setup(113, i2c4_addr)
 wiringpi.mcp23017Setup(129, i2c5_addr)
 
 
+
 buttonPinLocation = [
     [92, 96, 88, 81, 68, 72, 76, 79],
     [91, 95, 85, 82, 67, 71, 75, 80],
@@ -164,6 +165,7 @@ def updateLed():
 
 def startButtonPressed():
     if(GPIO.input(4)):
+        #print('Start button pressed')
         GPIO.output(17, GPIO.LOW)
         return True
     return GPIO.input(4)
@@ -179,7 +181,7 @@ def turnOffAll():
         [0, 0, 0, 0, 0, 0, 0, 0]
     ]
     for i in range(4):
-        for i in range(8):
+        for j in range(8):
             wiringpi.digitalWrite(ledPinLocation[i][j], 0)
     return
 
@@ -233,6 +235,8 @@ def pauseAll():
 
 
 while True:
+    #print(buttonsReading)
+    #print(startButtonPressed())
     # time.sleep(0.1)
     updateButtonsReading()
     updateLed()
