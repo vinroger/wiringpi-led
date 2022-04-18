@@ -3,7 +3,7 @@ from time import sleep
 import pygame
 
 import time
-import thPianoReading
+import threading
   
 pin_base = 65       # lowest available starting number is 65  
 # i2c_addr = 0x20     # A0, A1, A2 pins all wired to GND   
@@ -25,11 +25,13 @@ wiringpi.mcp23017Setup(pin_base,i2c5_addr)     # set up the pins and i2c address
 #     wiringpi.digitalWrite(i,1)
 
 buttonPianoPin = [
-    1,2,3,4,5,6,7,8
+    65,66,67,68,69,70,71,72
 ]
 ledPianoPin = [
-    1,2,3,4,5,6,7,8
+    73,74,75,76,77,78,79,80
 ]
+
+#init
 
 #Declaring button as an i2C input
 for i in range(8):
@@ -37,18 +39,21 @@ for i in range(8):
 
 #Declaring LED as an i2c output
 for i in range(8):
-    wiringpi.pinMode(ledPianoPin[i], 0)
+    wiringpi.pinMode(ledPianoPin[i], 1)
 
 
 #pygame init
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.mixer.init()
+crash = pygame.mixer.Sound('wav/crash.wav')
+notefiles = [crash, crash, crash, crash,crash, crash, crash, crash]
+
 
 
 #variables
 buttonsPianoReading = [0,0,0,0,0,0,0,0]
 flagPianoPressedState = [
-    [0, 0, 0, 0, 0, 0, 0, 0]
+    0, 0, 0, 0, 0, 0, 0, 0
 ]
 
 #declaration
@@ -73,10 +78,11 @@ def play_note(i):
 def updateButtonsPianoReading():
     global buttonsPianoReading
     global flagPianoPressedState
-    for i in range(4):
+    for i in range(8):
        
-        newPianoReading = wiringpi.digitalRead(buttonPinLocation[i])
-        #print(buttonsPianoReading)
+        newPianoReading = wiringpi.digitalRead(buttonPianoPin[i])
+       # print(i)
+        #print(buttonsPianoReading[i], newPianoReading, flagPianoPressedState[i])
         # if recent/prev is 0 then new/next is 1, meaning button get turned on
         if ((buttonsPianoReading[i] == 0) and (newPianoReading == 1) and flagPianoPressedState[i]== 0):
             flagPianoPressedState[i] = 1
@@ -94,11 +100,18 @@ def updateButtonsPianoReading():
             flagPianoPressedState[i]= 1 
             buttonsPianoReading[i] = 0
 
+        elif (buttonsPianoReading[i] == 0 and newPianoReading == 0 and flagPianoPressedState[i]== 1 ):
+            flagPianoPressedState[i]= 0 
+            # if same then skip
+        else:
+            pass
+
 def updatePianoLed():
-    for i in range(4):
+    for i in range(8):
         wiringpi.digitalWrite(ledPianoPin[i], buttonsPianoReading[i])
 
 while True:
     updateButtonsPianoReading()
     updatePianoLed()
+    print(buttonsPianoReading)
 
