@@ -23,13 +23,13 @@ wiringpi.mcp23017Setup(129,i2c5_addr)
 #     wiringpi.pinMode(i,1)
 #     wiringpi.digitalWrite(i,1)
 data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-for i in range(97, 129):
+for i in range(97, 130):
     wiringpi.pinMode(i, 1)
     wiringpi.digitalWrite(i, 1)
 while True:
-    for i in range(65,97):
-        wiringpi.pinMode(i, 0)
-        data[i-65] = wiringpi.digitalRead(i)
+    for i in range(129,160):
+        #wiringpi.pinMode(i, 0)
+        data[i-129] = wiringpi.digitalRead(i)
     print(data)
 
 
