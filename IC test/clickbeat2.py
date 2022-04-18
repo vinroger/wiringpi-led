@@ -74,32 +74,40 @@ ledPinLocation = [
 
 ###################################################################################################################
 buttonPianoPin = [
-    129,130,131,132,133,134,135,136
+    129, 130, 131, 132, 133, 134, 135, 136
 ]
 ledPianoPin = [
-    137,138,139,140,141,142,143,144
+    137, 138, 139, 140, 141, 142, 143, 144
 ]
 
-#Declaring button as an i2C input
+# Declaring button as an i2C input
 for i in range(8):
     wiringpi.pinMode(buttonPianoPin[i], 0)
 
-#Declaring LED as an i2c output
+# Declaring LED as an i2c output
 for i in range(8):
     wiringpi.pinMode(ledPianoPin[i], 1)
 
-#variables
-buttonsPianoReading = [0,0,0,0,0,0,0,0]
+# variables
+buttonsPianoReading = [0, 0, 0, 0, 0, 0, 0, 0]
 flagPianoPressedState = [
     0, 0, 0, 0, 0, 0, 0, 0
 ]
 
-#declaration
-noteduration = [1, 1, 1, 1, 1, 1, 1, 1] #in second
+# declaration
+noteduration = [1, 1, 1, 1, 1, 1, 1, 1]  # in second
 
-#declaring music for piano
-crash = pygame.mixer.Sound('wav/crash.wav')
-notefiles = [crash, crash, crash, crash,crash, crash, crash, crash]
+# declaring music for piano
+p1c = pygame.mixer.Sound('piano/1c.mp3')
+p2d = pygame.mixer.Sound('piano/2d.mp3')
+p3e = pygame.mixer.Sound('piano/3e.mp3')
+p4f = pygame.mixer.Sound('piano/4f.mp3')
+p5g = pygame.mixer.Sound('piano/5g.mp3')
+p6a = pygame.mixer.Sound('piano/6a.mp3')
+p7b = pygame.mixer.Sound('piano/7b.mp3')
+p8c = pygame.mixer.Sound('piano/8c.mp3')
+
+notefiles = [crash, crash, crash, crash, crash, crash, crash, crash]
 
 
 def play_note(i):
@@ -108,45 +116,45 @@ def play_note(i):
         time.sleep(noteduration[i])
     return
 
+
 def updateButtonsPianoReading():
     global buttonsPianoReading
     global flagPianoPressedState
     for i in range(8):
-       
+
         newPianoReading = wiringpi.digitalRead(buttonPianoPin[i])
        # print(i)
         #print(buttonsPianoReading[i], newPianoReading, flagPianoPressedState[i])
         # if recent/prev is 0 then new/next is 1, meaning button get turned on
-        if ((buttonsPianoReading[i] == 0) and (newPianoReading == 1) and flagPianoPressedState[i]== 0):
+        if ((buttonsPianoReading[i] == 0) and (newPianoReading == 1) and flagPianoPressedState[i] == 0):
             flagPianoPressedState[i] = 1
             buttonsPianoReading[i] = 1
-            #thPianoReading
+            # thPianoReading
             t3 = threading.Thread(target=play_note, args=[i])
             t3.start()
 
-        elif ((buttonsPianoReading[i] == 1) and (newPianoReading == 0)and flagPianoPressedState[i]== 1):
-            #print("1,0,1")
+        elif ((buttonsPianoReading[i] == 1) and (newPianoReading == 0) and flagPianoPressedState[i] == 1):
+            # print("1,0,1")
             flagPianoPressedState[i] = 0
 
         # if recent/prev is 1 then new/next is 1, meaning button get turned off
-        elif (buttonsPianoReading[i] == 1 and newPianoReading == 1 and flagPianoPressedState[i]== 0 ):
-            flagPianoPressedState[i]= 1 
+        elif (buttonsPianoReading[i] == 1 and newPianoReading == 1 and flagPianoPressedState[i] == 0):
+            flagPianoPressedState[i] = 1
             buttonsPianoReading[i] = 0
 
-        elif (buttonsPianoReading[i] == 0 and newPianoReading == 0 and flagPianoPressedState[i]== 1 ):
-            flagPianoPressedState[i]= 0 
+        elif (buttonsPianoReading[i] == 0 and newPianoReading == 0 and flagPianoPressedState[i] == 1):
+            flagPianoPressedState[i] = 0
             # if same then skip
         else:
             pass
+
 
 def updatePianoLed():
     for i in range(8):
         wiringpi.digitalWrite(ledPianoPin[i], buttonsPianoReading[i])
 
 
-
 ###################################################################################################################
-
 startButtonPinLocation = 200
 wiringpi.pinMode(startButtonPinLocation, 0)
 
@@ -154,7 +162,6 @@ wiringpi.pinMode(startButtonPinLocation, 0)
 for i in range(4):
     for j in range(8):
         wiringpi.pinMode(buttonPinLocation[i][j], 0)
-
 
 
 # Array for pressed or not pressed buttonsReading
@@ -310,6 +317,7 @@ def checkStartButton(starttime):
 def pauseAll():
     return
 
+
 def executeClickbeat():
     global clickbeatInProgress
     clickbeatInProgress = True
@@ -332,7 +340,6 @@ def executeClickbeat():
         execute_beats()
     clickbeatInProgress = False
     t2.join()
-    
 
     # Check if start button pressed but if only time exceed minimum second elapsed (to atleast play some beats)
 
@@ -342,9 +349,9 @@ def executeClickbeat():
 while True:
     updateButtonsPianoReading()
     updatePianoLed()
-    #print(stopButtonPressed)
-    #print(buttonsReading)
-    #print(startButtonPressed())
+    # print(stopButtonPressed)
+    # print(buttonsReading)
+    # print(startButtonPressed())
     # time.sleep(0.1)
     if not clickbeatInProgress:
         updateButtonsReading()
@@ -353,7 +360,5 @@ while True:
     if (startButtonPressed() and (not clickbeatInProgress)):
         print("executed mainly")
         t1 = threading.Thread(target=executeClickbeat, args=[])
-        #executeClickbeat()
+        # executeClickbeat()
         t1.start()
-    
-   
