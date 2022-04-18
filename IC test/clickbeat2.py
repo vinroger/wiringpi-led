@@ -98,14 +98,14 @@ flagPianoPressedState = [
 noteduration = [1, 1, 1, 1, 1, 1, 1, 1]  # in second
 
 # declaring music for piano
-p1c = pygame.mixer.Sound('piano/1c.mp3')
-p2d = pygame.mixer.Sound('piano/2d.mp3')
-p3e = pygame.mixer.Sound('piano/3e.mp3')
-p4f = pygame.mixer.Sound('piano/4f.mp3')
-p5g = pygame.mixer.Sound('piano/5g.mp3')
-p6a = pygame.mixer.Sound('piano/6a.mp3')
-p7b = pygame.mixer.Sound('piano/7b.mp3')
-p8c = pygame.mixer.Sound('piano/8c.mp3')
+p1c = pygame.mixer.Sound('piano/1c.wav')
+p2d = pygame.mixer.Sound('piano/2d.wav')
+p3e = pygame.mixer.Sound('piano/3e.wav')
+p4f = pygame.mixer.Sound('piano/4f.wav')
+p5g = pygame.mixer.Sound('piano/5g.wav')
+p6a = pygame.mixer.Sound('piano/6a.wav')
+p7b = pygame.mixer.Sound('piano/7b.wav')
+p8c = pygame.mixer.Sound('piano/8c.wav')
 
 notefiles = [crash, crash, crash, crash, crash, crash, crash, crash]
 
