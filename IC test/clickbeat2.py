@@ -42,10 +42,16 @@ wiringpi.mcp23017Setup(129, i2c5_addr)
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.mixer.init()
 
+beats_volume = 0.5
+
 crash = pygame.mixer.Sound('wav/crash.wav')
+pygame.mixer.Sound.set_volume(crash, beats_volume)
 kick = pygame.mixer.Sound('wav/kick.wav')
+pygame.mixer.Sound.set_volume(kick, beats_volume)
 snare = pygame.mixer.Sound('wav/snare.wav')
+pygame.mixer.Sound.set_volume(snare, beats_volume)
 hihat = pygame.mixer.Sound('wav/hihat.wav')
+pygame.mixer.Sound.set_volume(hihat, beats_volume)
 audiofiles = [crash, kick, snare, hihat]
 
 
@@ -54,7 +60,7 @@ timeoutSec = 300
 # to avoid start button being pressed again and turns everything off,
 # we set a timeout to atleast play some beats loop before the user can turn off the beats by pressing the start button again
 minimumSec = 2
-beatsPause = 300
+beatsPause = 230
 stopButtonPressed = False
 
 
@@ -95,19 +101,19 @@ flagPianoPressedState = [
 ]
 
 # declaration
-noteduration = [1, 1, 1, 1, 1, 1, 1, 1]  # in second
+noteduration = [0.5 for i in range(8)]  # in second
 
 # declaring music for piano
-p1c = pygame.mixer.Sound('piano/1c.wav')
-p2d = pygame.mixer.Sound('piano/2d.wav')
-p3e = pygame.mixer.Sound('piano/3e.wav')
-p4f = pygame.mixer.Sound('piano/4f.wav')
-p5g = pygame.mixer.Sound('piano/5g.wav')
-p6a = pygame.mixer.Sound('piano/6a.wav')
-p7b = pygame.mixer.Sound('piano/7b.wav')
-p8c = pygame.mixer.Sound('piano/8c.wav')
+p1c = pygame.mixer.Sound('piano/1c_2.wav')
+p2d = pygame.mixer.Sound('piano/2d_2.wav')
+p3e = pygame.mixer.Sound('piano/3e_2.wav')
+p4f = pygame.mixer.Sound('piano/4f_2.wav')
+p5g = pygame.mixer.Sound('piano/5g_2.wav')
+p6a = pygame.mixer.Sound('piano/6a_2.wav')
+p7b = pygame.mixer.Sound('piano/7b_2.wav')
+p8c = pygame.mixer.Sound('piano/8c_2.wav')
 
-notefiles = [crash, crash, crash, crash, crash, crash, crash, crash]
+notefiles = [p1c,p2d,p3e,p4f,p5g,p6a,p7b,p8c]
 
 
 def play_note(i):
@@ -157,11 +163,13 @@ def updatePianoLed():
 ###################################################################################################################
 startButtonPinLocation = 200
 wiringpi.pinMode(startButtonPinLocation, 0)
+ledoffset = 50
 
 # Declaring button input as an i2C input
 for i in range(4):
     for j in range(8):
         wiringpi.pinMode(buttonPinLocation[i][j], 0)
+        wiringpi.pinMode(ledPinLocation[i][j], 1)
 
 
 # Array for pressed or not pressed buttonsReading
@@ -192,7 +200,10 @@ def play_all_beats():
         for j in range(4):
             if buttonsReading[j][i]:
                 audiofiles[j].play()
-        time.sleep(beatsPause/1000)
+        if i <7:
+            time.sleep((beatsPause)/1000)
+        # else:
+        #     print('Hello')
     return
 
 # Check for input and update the buttonsReading array  for BUTTONS
@@ -274,7 +285,8 @@ def execute_beats():
     t = threading.Thread(target=sweepLED, args=[])
     t.start()
     play_all_beats()
-    t.join()
+    time.sleep(beatsPause/1000)
+    #t.join()
     return
 
 
@@ -282,7 +294,8 @@ def sweepLED():
     for j in range(8):
         for i in range(4):
             wiringpi.digitalWrite(ledPinLocation[i][j], buttonsReading[i][j])
-        time.sleep(beatsPause/1000)
+        
+        time.sleep((beatsPause-ledoffset)/1000)
         for i in range(4):
             wiringpi.digitalWrite(ledPinLocation[i][j], 0)
     return
@@ -309,6 +322,7 @@ def checkStartButton(starttime):
         timeNow = datetime.datetime.now()
         if(timeNow-starttime).seconds > minimumSec:
             stopButtonPressed = GPIO.input(4)
+            #print("meow")
             if GPIO.input(4) == True:
                 GPIO.output(17, GPIO.HIGH)
     return
@@ -357,8 +371,8 @@ while True:
         updateButtonsReading()
         updateLed()
     # if (startButtonPressed()):
-    if (startButtonPressed() and (not clickbeatInProgress)):
-        print("executed mainly")
-        t1 = threading.Thread(target=executeClickbeat, args=[])
-        # executeClickbeat()
-        t1.start()
+        if (startButtonPressed()):
+            #print("executed mainly")
+            t1 = threading.Thread(target=executeClickbeat, args=[])
+            # executeClickbeat()
+            t1.start()
