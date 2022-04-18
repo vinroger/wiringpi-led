@@ -11,32 +11,32 @@ import RPi.GPIO as GPIO
 #import time
 
 
-#Initialize GPIO
+# Initialize GPIO
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-#one for button switch
-GPIO.setup(4,GPIO.IN)
-#one for button LED
-GPIO.setup(17,GPIO.OUT)
-GPIO.output(17,GPIO.HIGH)
+# one for button switch
+GPIO.setup(4, GPIO.IN)
+# one for button LED
+GPIO.setup(17, GPIO.OUT)
+GPIO.output(17, GPIO.HIGH)
 
 
-pin_base = 65       # lowest available starting number is 65  
-i2c_addr = 0x20     # A0, A1, A2 pins all wired to GND  
-i2c2_addr = 0x21 
+pin_base = 65       # lowest available starting number is 65
+i2c_addr = 0x20     # A0, A1, A2 pins all wired to GND
+i2c2_addr = 0x21
 i2c3_addr = 0x23
 i2c4_addr = 0x24
 i2c5_addr = 0x25  # A0, A1, A2 pins all wired to GND
 
 
-
 # DECLARATION of wiring Pi
-wiringpi.wiringPiSetup()                    # initialise wiringpi  
-wiringpi.mcp23017Setup(pin_base,i2c_addr)     # set up the pins and i2c address 
-wiringpi.mcp23017Setup(81,i2c2_addr) 
-wiringpi.mcp23017Setup(97,i2c3_addr)
-wiringpi.mcp23017Setup(113,i2c4_addr)
-wiringpi.mcp23017Setup(129,i2c5_addr)
+wiringpi.wiringPiSetup()                    # initialise wiringpi
+# set up the pins and i2c address
+wiringpi.mcp23017Setup(pin_base, i2c_addr)
+wiringpi.mcp23017Setup(81, i2c2_addr)
+wiringpi.mcp23017Setup(97, i2c3_addr)
+wiringpi.mcp23017Setup(113, i2c4_addr)
+wiringpi.mcp23017Setup(129, i2c5_addr)
 
 
 buttonPinLocation = [
@@ -95,10 +95,12 @@ def play_beat(row):
     time.sleep(1)
     return
 
+
 def play_beat_diff_thread(row):
     t3 = threading.Thread(target=play_beat, args=[row])
     t3.start()
     return
+
 
 def play_all_beats():
     for i in range(8):
@@ -109,6 +111,7 @@ def play_all_beats():
     return
 
 # Check for input and update the buttonsReading array  for BUTTONS
+
 
 flagPressedState = [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -124,46 +127,47 @@ def updateButtonsReading():
     for i in range(4):
         for j in range(8):
             newReading = wiringpi.digitalRead(buttonPinLocation[i][j])
-            #print(buttonsReading)
+            # print(buttonsReading)
             # if recent/prev is 0 then new/next is 1, meaning button get turned on
-            if ((buttonsReading[i][j] == 0) and (newReading == 1) and flagPressedState[i][j]== 0):
+            if ((buttonsReading[i][j] == 0) and (newReading == 1) and flagPressedState[i][j] == 0):
                 flagPressedState[i][j] = 1
                 buttonsReading[i][j] = 1
-                #threading
+                # threading
                 t3 = threading.Thread(target=play_beat, args=[i])
                 t3.start()
 
-            elif ((buttonsReading[i][j] == 1) and (newReading == 0)and flagPressedState[i][j]== 1):
-                #print("1,0,1")
+            elif ((buttonsReading[i][j] == 1) and (newReading == 0) and flagPressedState[i][j] == 1):
+                # print("1,0,1")
                 flagPressedState[i][j] = 0
 
             # if recent/prev is 1 then new/next is 1, meaning button get turned off
-            elif (buttonsReading[i][j] == 1 and newReading == 1 and flagPressedState[i][j]== 0 ):
-                flagPressedState[i][j]= 1 
+            elif (buttonsReading[i][j] == 1 and newReading == 1 and flagPressedState[i][j] == 0):
+                flagPressedState[i][j] = 1
                 buttonsReading[i][j] = 0
 
-            elif (buttonsReading[i][j] == 0 and newReading == 0 and flagPressedState[i][j]== 1 ):
-                flagPressedState[i][j]= 0 
+            elif (buttonsReading[i][j] == 0 and newReading == 0 and flagPressedState[i][j] == 1):
+                flagPressedState[i][j] = 0
 
             # if same then skip
             else:
                 pass
     return
-
-
 # update the LED, if pressed then turns on, until it got pressed again ->then will turn off
+
+
 def updateLed():
     for i in range(4):
         for j in range(8):
             wiringpi.digitalWrite(ledPinLocation[i][j], buttonsReading[i][j])
     return
 
+
 def startButtonPressed():
     if(GPIO.input(4)):
-        GPIO.output(17,GPIO.LOW)
+        GPIO.output(17, GPIO.LOW)
         return True
     return GPIO.input(4)
-    #return wiringpi.digitalRead(startButtonPinLocation)
+    # return wiringpi.digitalRead(startButtonPinLocation)
 
 
 def turnOffAll():
@@ -187,6 +191,7 @@ def execute_beats():
     t.join()
     return
 
+
 def sweepLED():
     for j in range(8):
         for i in range(4):
@@ -196,15 +201,17 @@ def sweepLED():
             wiringpi.digitalWrite(ledPinLocation[i][j], 0)
     return
 
+
 def inverseSweepLED():
     for j in range(8):
         for i in range(4):
             wiringpi.digitalWrite(ledPinLocation[i][j], 1)
         time.sleep(beatsPause/1000)
-        
+
         for i in range(4):
             wiringpi.digitalWrite(ledPinLocation[i][j], buttonsReading[i][j])
     return
+
 
 def checkStartButton(starttime):
     global stopButtonPressed
@@ -215,22 +222,23 @@ def checkStartButton(starttime):
             break
         timeNow = datetime.datetime.now()
         if(timeNow-starttime).seconds > minimumSec:
-            stopButtonPressed =GPIO.input(4)
+            stopButtonPressed = GPIO.input(4)
             if GPIO.input(4) == True:
-                GPIO.output(17,GPIO.HIGH)
+                GPIO.output(17, GPIO.HIGH)
     return
+
 
 def pauseAll():
     return
 
 
 while True:
-    #time.sleep(0.1)
+    # time.sleep(0.1)
     updateButtonsReading()
     updateLed()
-    #if (startButtonPressed()):
+    # if (startButtonPressed()):
     if (startButtonPressed()):
-        #print("triggered")
+        # print("triggered")
         starttime = datetime.datetime.now()
 
         # make a separate thread for checking stopButtonPressed
